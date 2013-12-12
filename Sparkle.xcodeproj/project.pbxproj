@@ -1377,6 +1377,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SDKROOT)/usr/include/libxml2",
 				);
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1391,6 +1392,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SDKROOT)/usr/include/libxml2",
 				);
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				SDKROOT = macosx;
 			};
 			name = Release;
