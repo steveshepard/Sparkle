@@ -15,6 +15,9 @@
 #import "SUConstants.h"
 #import "SULog.h"
 
+#import <libxml/tree.h>
+#import <libxml/xpath.h>
+
 @interface NSXMLElement (SUAppcastExtensions)
 - (NSDictionary *)attributesAsDictionary;
 @end
@@ -102,8 +105,15 @@
             // In 10.7 and later, there's a real option for the behavior we desire.
             options = NSXMLNodeLoadExternalEntitiesSameOriginOnly;
         }
+        
+        xmlRegisterNodeFunc oldRegisterValue = xmlRegisterNodeDefault(0);
+        xmlRegisterNodeFunc oldDeregisterValue = xmlDeregisterNodeDefault(0);
+
 		document = [[[NSXMLDocument alloc] initWithContentsOfURL:[NSURL fileURLWithPath:downloadFilename] options:options error:&error] autorelease];
 	
+        xmlRegisterNodeDefault(oldRegisterValue);
+        xmlDeregisterNodeDefault(oldDeregisterValue);
+
 #if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 		[[NSFileManager defaultManager] removeFileAtPath:downloadFilename handler:nil];
 #else
