@@ -24,6 +24,9 @@
 
 @end
 
+@interface SUUpdateAlert () <WebPolicyDelegate, WebFrameLoadDelegate>
+
+@end
 
 @implementation SUUpdateAlert
 
