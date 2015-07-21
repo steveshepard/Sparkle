@@ -24,9 +24,12 @@
 
 @end
 
-@interface SUUpdateAlert () <WebPolicyDelegate, WebFrameLoadDelegate>
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101100
 
+@interface SUUpdateAlert () <WebPolicyDelegate, WebFrameLoadDelegate>
 @end
+
+#endif
 
 @implementation SUUpdateAlert
 
