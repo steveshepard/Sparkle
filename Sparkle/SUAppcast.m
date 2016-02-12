@@ -105,7 +105,6 @@
 	if (self.downloadFilename)
 	{
         NSUInteger options = 0;
-        options = NSXMLNodeLoadExternalEntitiesSameOriginOnly;
 
         // sjs - Storyist additions
         xmlRegisterNodeFunc oldRegisterValue = xmlRegisterNodeDefault(0);
