@@ -111,6 +111,8 @@
         xmlRegisterNodeFunc oldRegisterValue = xmlRegisterNodeDefault(0);
         xmlRegisterNodeFunc oldDeregisterValue = xmlDeregisterNodeDefault(0);
         
+        options = NSXMLNodeLoadExternalEntitiesNever; // Prevent inclusion from file://
+
         document = [[NSXMLDocument alloc] initWithContentsOfURL:[NSURL fileURLWithPath:self.downloadFilename] options:options error:&error];
         
         // sjs - Storyist additions
@@ -241,7 +243,11 @@
     }
 
     if (failed) {
-        [self reportError:[NSError errorWithDomain:SUSparkleErrorDomain code:SUAppcastParseError userInfo:@{ NSLocalizedDescriptionKey: SULocalizedString(@"An error occurred while parsing the update feed.", nil) }]];
+        [self reportError:[NSError errorWithDomain:SUSparkleErrorDomain
+                                              code:SUAppcastParseError
+                                          userInfo:@{
+                                                     NSLocalizedDescriptionKey: SULocalizedString(@"An error occurred while parsing the update feed.", nil),
+                                                     NSUnderlyingErrorKey: error ? error : [NSNull null]}]];
     } else {
         self.completionBlock(nil);
         self.completionBlock = nil;
@@ -297,6 +303,18 @@
         i = 0;
     }
     return nodes[i];
+}
+
+- (SUAppcast *)copyWithoutDeltaUpdates {
+    SUAppcast *other = [SUAppcast new];
+    NSMutableArray *nonDeltaItems = [NSMutableArray new];
+
+    for(SUAppcastItem *item in self.items) {
+        if (![item isDeltaUpdate]) [nonDeltaItems addObject:item];
+    }
+
+    other.items = nonDeltaItems;
+    return other;
 }
 
 @end
