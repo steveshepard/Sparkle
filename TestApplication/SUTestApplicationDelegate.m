@@ -30,7 +30,7 @@ static NSString * const UPDATED_VERSION = @"2.0";
     NSBundle *mainBundle = [NSBundle mainBundle];
     
     // Check if we are already up to date
-    if ([[mainBundle objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleVersionKey] isEqualToString:UPDATED_VERSION]) {
+    if ([(NSString *)[mainBundle objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleVersionKey] isEqualToString:UPDATED_VERSION]) {
         NSAlert *alreadyUpdatedAlert = [[NSAlert alloc] init];
         alreadyUpdatedAlert.messageText = @"Update succeeded!";
         alreadyUpdatedAlert.informativeText = @"This is the updated version of Sparkle Test App.\n\nDelete and rebuild the app to test updates again.";
@@ -39,7 +39,7 @@ static NSString * const UPDATED_VERSION = @"2.0";
         [[NSApplication sharedApplication] terminate:nil];
     }
     
-    SUFileManager *fileManager = [SUFileManager fileManagerAllowingAuthorization:NO];
+    SUFileManager *fileManager = [SUFileManager defaultManager];
     
     // Locate user's cache directory
     NSError *cacheError = nil;
@@ -54,7 +54,7 @@ static NSString * const UPDATED_VERSION = @"2.0";
     assert(bundleIdentifier != nil);
     
     // Create a directory that'll be used for our web server listing
-    NSURL *serverDirectoryURL = [cacheDirectoryURL URLByAppendingPathComponent:bundleIdentifier];
+    NSURL *serverDirectoryURL = [[cacheDirectoryURL URLByAppendingPathComponent:bundleIdentifier] URLByAppendingPathComponent:@"ServerData"];
     if ([serverDirectoryURL checkResourceIsReachableAndReturnError:nil]) {
         NSError *removeServerDirectoryError = nil;
         
@@ -73,7 +73,10 @@ static NSString * const UPDATED_VERSION = @"2.0";
     assert(bundleURL != nil);
     
     // Copy main bundle into server directory
-    NSURL *destinationBundleURL = [serverDirectoryURL URLByAppendingPathComponent:bundleURL.lastPathComponent];
+    NSString *bundleURLLastComponent = bundleURL.lastPathComponent;
+    assert(bundleURLLastComponent != nil);
+    
+    NSURL *destinationBundleURL = [serverDirectoryURL URLByAppendingPathComponent:bundleURLLastComponent];
     NSError *copyBundleError = nil;
     if (![fileManager copyItemAtURL:bundleURL toURL:destinationBundleURL error:&copyBundleError]) {
         NSLog(@"Failed to copy main bundle into server directory with error %@", copyBundleError);
@@ -87,8 +90,8 @@ static NSString * const UPDATED_VERSION = @"2.0";
     assert(infoFileExists);
     
     NSMutableDictionary *infoDictionary = [[NSMutableDictionary alloc] initWithContentsOfURL:infoURL];
-    infoDictionary[(__bridge NSString *)kCFBundleVersionKey] = UPDATED_VERSION;
-    infoDictionary[@"CFBundleShortVersionString"] = UPDATED_VERSION;
+    [infoDictionary setObject:UPDATED_VERSION forKey:(__bridge NSString *)kCFBundleVersionKey];
+    [infoDictionary setObject:UPDATED_VERSION forKey:@"CFBundleShortVersionString"];
     
     BOOL wroteInfoFile = [infoDictionary writeToURL:infoURL atomically:NO];
     assert(wroteInfoFile);
@@ -101,7 +104,9 @@ static NSString * const UPDATED_VERSION = @"2.0";
     NSString *zipName = @"Sparkle_Test_App.zip";
     NSTask *dittoTask = [[NSTask alloc] init];
     dittoTask.launchPath = @"/usr/bin/ditto";
-    dittoTask.arguments = @[@"-c", @"-k", @"--sequesterRsrc", @"--keepParent", destinationBundleURL.lastPathComponent, zipName];
+    NSString *lastPathComponent = destinationBundleURL.lastPathComponent;
+    assert(lastPathComponent);
+    dittoTask.arguments = @[@"-c", @"-k", @"--sequesterRsrc", @"--keepParent", lastPathComponent, zipName];
     dittoTask.currentDirectoryPath = serverDirectoryPath;
     [dittoTask launch];
     [dittoTask waitUntilExit];
@@ -122,7 +127,9 @@ static NSString * const UPDATED_VERSION = @"2.0";
     signUpdateTask.launchPath = signUpdatePath;
     
     NSURL *archiveURL = [serverDirectoryURL URLByAppendingPathComponent:zipName];
-    signUpdateTask.arguments = @[archiveURL.path, privateKeyPath];
+    NSString *path = archiveURL.path;
+    assert(path != nil);
+    signUpdateTask.arguments = @[path, privateKeyPath];
     
     NSPipe *outputPipe = [NSPipe pipe];
     signUpdateTask.standardOutput = outputPipe;
@@ -139,7 +146,9 @@ static NSString * const UPDATED_VERSION = @"2.0";
     
     // Obtain the file attributes to get the file size of our update later
     NSError *fileAttributesError = nil;
-    NSDictionary *archiveFileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:archiveURL.path error:&fileAttributesError];
+    NSString *archivePath = archiveURL.path;
+    assert(archivePath != nil);
+    NSDictionary *archiveFileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:archivePath error:&fileAttributesError];
     if (archiveFileAttributes == nil) {
         NSLog(@"Failed to retrieve file attributes from archive with error %@", fileAttributesError);
         assert(NO);
@@ -150,8 +159,10 @@ static NSString * const UPDATED_VERSION = @"2.0";
     
     // Copy our appcast over to the server directory
     NSURL *appcastDestinationURL = [[serverDirectoryURL URLByAppendingPathComponent:appcastName] URLByAppendingPathExtension:appcastExtension];
+    NSURL *appcastPath = [mainBundle URLForResource:appcastName withExtension:appcastExtension];
+    assert(appcastPath);
     NSError *copyAppcastError = nil;
-    if (![fileManager copyItemAtURL:[mainBundle URLForResource:appcastName withExtension:appcastExtension] toURL:appcastDestinationURL error:&copyAppcastError]) {
+    if (![fileManager copyItemAtURL:appcastPath toURL:appcastDestinationURL error:&copyAppcastError]) {
         NSLog(@"Failed to copy appcast into cache directory with error %@", copyAppcastError);
         assert(NO);
     }
