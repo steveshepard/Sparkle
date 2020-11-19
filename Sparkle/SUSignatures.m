@@ -19,7 +19,8 @@ static NSData *decode(NSString *str) {
     }
 
     NSString *stripped = [str stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    return [[NSData alloc] initWithBase64Encoding:stripped];
+    return [[NSData alloc] initWithBase64EncodedString:stripped options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    // sjs return [[NSData alloc] initWithBase64Encoding:stripped];
 }
 
 - (instancetype)initWithDsa:(NSString * _Nullable)maybeDsa ed:(NSString * _Nullable)maybeEd25519
