@@ -87,7 +87,7 @@ CLANG_ENABLE_MODULES[sdk=macosx10.7] = NO
 CLANG_ENABLE_MODULES[sdk=macosx10.8] = NO
 
 // These should be removed once the conversion to ARC is complete
-WARNING_CFLAGS_EXTRA = -Wno-custom-atomic-properties -Wno-implicit-atomic-properties
+WARNING_CFLAGS_EXTRA = -Wno-custom-atomic-properties -Wno-implicit-atomic-properties -Wno-declaration-after-statement
 
 // Turn on all warnings, then disable a few which are almost impossible to avoid
 WARNING_CFLAGS = -Wall -Weverything -Wno-unused-macros -Wno-gnu-statement-expression -Wno-arc-repeated-use-of-weak -Wno-auto-import -Wno-gnu-zero-variadic-macro-arguments $(WARNING_CFLAGS_EXTRA)
